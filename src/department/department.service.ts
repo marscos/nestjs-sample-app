@@ -11,14 +11,18 @@ import {
 export class DepartmentService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getDepartment(dto: IdentifyDepartmentDTO) {
-    return this.prisma.department.findUniqueOrThrow({ where: dto });
+  async getDepartment({ id }: IdentifyDepartmentDTO) {
+    return this.prisma.department.findUniqueOrThrow({ where: { id } });
   }
 
-  async findDepartments(dto: QueryDepartmentDTO) {
-    return this.prisma.department.findMany({
-      ...dto,
-    });
+  async findDepartments({ skip, take }: QueryDepartmentDTO) {
+    return {
+      result: await this.prisma.department.findMany({
+        skip,
+        take,
+      }),
+      total: await this.prisma.department.count(),
+    };
   }
 
   async createDepartment(dto: CreateDepartmentDTO) {
