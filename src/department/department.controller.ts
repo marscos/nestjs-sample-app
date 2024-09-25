@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import {
   CreateDepartmentDTO,
+  DepartmentDTO,
   IdentifyDepartmentDTO,
   QueryDepartmentDTO,
   UpdateDepartmentDTO,
@@ -23,13 +24,14 @@ import {
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { ApiPaginatedResponse } from 'src/common/pagination.dto';
 
 @ApiTags('Departments')
 @Controller('departments')
 export class DepartmentController {
   constructor(private readonly service: DepartmentService) {}
 
-  @ApiOkResponse()
+  @ApiOkResponse({ type: DepartmentDTO })
   @ApiNotFoundResponse()
   @ApiBadRequestResponse()
   @Get(':id')
@@ -37,14 +39,14 @@ export class DepartmentController {
     return this.service.getDepartment(params);
   }
 
-  @ApiOkResponse()
+  @ApiPaginatedResponse(DepartmentDTO)
   @ApiBadRequestResponse()
   @Get()
   listDepartments(@Query() query: QueryDepartmentDTO) {
     return this.service.findDepartments(query);
   }
 
-  @ApiCreatedResponse()
+  @ApiCreatedResponse({ type: DepartmentDTO })
   @ApiBadRequestResponse()
   @ApiConflictResponse()
   @Post()
@@ -52,7 +54,7 @@ export class DepartmentController {
     return this.service.createDepartment(data);
   }
 
-  @ApiOkResponse()
+  @ApiOkResponse({ type: DepartmentDTO })
   @ApiNotFoundResponse()
   @ApiBadRequestResponse()
   @ApiConflictResponse()
@@ -64,7 +66,7 @@ export class DepartmentController {
     return this.service.updateDepartment(params, data);
   }
 
-  @ApiOkResponse()
+  @ApiOkResponse({ type: DepartmentDTO })
   @ApiBadRequestResponse()
   @Delete(':id')
   deleteDepartment(@Param() params: IdentifyDepartmentDTO) {

@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import {
   CreateEmployeeDTO,
+  EmployeeDTO,
   IdentifyEmployeeDTO,
   QueryEmployeeDTO,
   UpdateEmployeeDTO,
@@ -23,13 +24,14 @@ import {
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { ApiPaginatedResponse } from 'src/common/pagination.dto';
 
 @ApiTags('Employees')
 @Controller('employees')
 export class EmployeeController {
   constructor(private readonly service: EmployeeService) {}
 
-  @ApiOkResponse()
+  @ApiOkResponse({ type: EmployeeDTO })
   @ApiNotFoundResponse()
   @ApiBadRequestResponse()
   @Get(':id')
@@ -37,14 +39,14 @@ export class EmployeeController {
     return this.service.getEmployee(params);
   }
 
-  @ApiOkResponse()
+  @ApiPaginatedResponse(EmployeeDTO)
   @ApiBadRequestResponse()
   @Get()
   listEmployees(@Query() query: QueryEmployeeDTO) {
     return this.service.findEmployees(query);
   }
 
-  @ApiCreatedResponse()
+  @ApiCreatedResponse({ type: EmployeeDTO })
   @ApiBadRequestResponse()
   @ApiConflictResponse()
   @Post()
@@ -52,7 +54,7 @@ export class EmployeeController {
     return this.service.createEmployee(data);
   }
 
-  @ApiOkResponse()
+  @ApiOkResponse({ type: EmployeeDTO })
   @ApiNotFoundResponse()
   @ApiBadRequestResponse()
   @ApiConflictResponse()
@@ -64,7 +66,7 @@ export class EmployeeController {
     return this.service.updateEmployee(params, data);
   }
 
-  @ApiOkResponse()
+  @ApiOkResponse({ type: EmployeeDTO })
   @ApiBadRequestResponse()
   @Delete(':id')
   deleteEmployee(@Param() params: IdentifyEmployeeDTO) {

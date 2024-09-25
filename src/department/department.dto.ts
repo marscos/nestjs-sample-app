@@ -1,6 +1,6 @@
 import { IsDefined, IsOptional, IsPositive } from 'class-validator';
 import { Type } from 'class-transformer';
-import { QueryDTO } from 'src/common/query.dto';
+import { QueryDTO } from 'src/common/pagination.dto';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class QueryDepartmentDTO extends QueryDTO {}
@@ -22,5 +22,15 @@ export class CreateDepartmentDTO {
 export class UpdateDepartmentDTO {
   @ApiPropertyOptional({ description: 'Department name' })
   @IsOptional()
+  name: string;
+}
+export class DepartmentDTO {
+  @ApiProperty({ description: 'Department ID' })
+  id: number;
+  @ApiProperty({ description: 'Date of creation' })
+  createdAt: Date;
+  @ApiProperty({ description: 'Date of last update' })
+  updatedAt: Date;
+  @ApiProperty({ description: 'Department name' })
   name: string;
 }
