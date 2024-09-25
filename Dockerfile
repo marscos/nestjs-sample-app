@@ -4,6 +4,8 @@ WORKDIR /usr/src/app
 
 COPY package*.json ./
 
+RUN --mount=type=secret,id=DATABASE_URL,env=DATABASE_URL 
+
 RUN npm install
 
 COPY . .
