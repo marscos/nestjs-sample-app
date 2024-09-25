@@ -1,5 +1,7 @@
 FROM node:18
 
+ARG DATABASE_URL
+
 WORKDIR /usr/src/app
 
 COPY package*.json ./
@@ -7,8 +9,6 @@ COPY package*.json ./
 RUN npm install
 
 COPY . .
-
-RUN --mount=type=secret,id=DATABASE_URL,env=DATABASE_URL npm run build
 
 EXPOSE 3000
 
