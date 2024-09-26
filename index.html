@@ -1,0 +1,469 @@
+<html>
+  <head>
+    <title>Work App Sample</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"
+    />
+    <script
+      defer
+      src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"
+    ></script>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"
+    ></script>
+    <script>function useForm(url) {
+  return {
+    response: false,
+    isLoading: false,
+    data() {
+      const inputs = Array.from(this.$el.querySelectorAll("input"));
+      const data = inputs.reduce(
+        (object, key) => ({ ...object, [key.name]: key.value }),
+        {}
+      );
+      return { ...data };
+    },
+    async post(isEditing) {
+      url = isEditing.id ? `${url}/${isEditing.id}` : url
+      const department = isEditing.departmentId === "null" ? null : isEditing.departmentId
+      this.response = await fetch(url, {
+          method: isEditing.id ? "PATCH" : "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({...this.data(), departmentId: department }),  
+        })
+      if (this.response.ok) {
+        document.querySelector('#modal-create-employee').classList.remove('is-active')
+        window.location.reload()
+      } else {
+        this.response = await this.response.json()
+        this.isLoading = false
+      }
+    },
+  };
+}
+
+
+function getData() {
+  return {
+    selectedOption: 0,
+    options: [],
+    searchValue: '',
+    page: 1,
+    limit: 5,
+    total: 50,
+    items: [],
+    isLoading: true,
+    previousPage: 1,
+    nextPage: null,
+    lastPage: 0,
+    isEditing: {},
+    async fetchOptions() {
+      this.isLoading = true;
+      let { total, result } = await fetch("https://thick-evey-marscos-b3b05295.koyeb.app/departments").then(res => res.json())
+      this.options = [...this.options, ...result]
+      while (this.options.length < total) {
+        let { result } = await fetch(`https://thick-evey-marscos-b3b05295.koyeb.app/departments?skip=${this.options.length}`).then(res => res.json())
+        this.options = [...this.options, ...result]
+      }
+      this.isLoading = false;
+    },
+    async fetchData(page = this.page) {
+      const urlObj = new URL("https://thick-evey-marscos-b3b05295.koyeb.app/employees")
+      urlObj.searchParams.set('take', this.limit);
+      if (page > 1) urlObj.searchParams.set('skip', this.limit*(page-1));
+      if (this.selectedOption > 0) {
+        urlObj.searchParams.set('departmentId', this.selectedOption)
+      }
+      const { total, result } = await fetch(urlObj).then(res => res.json())
+      this.isLoading = false;
+      this.total = total;
+      this.items = result;
+      this.page = page
+      this.previousPage = this.page == 1 ? this.previousPage : this.page - 1
+      this.nextPage = this.page + 1
+      this.lastPage = Math.ceil(this.total / this.limit)
+    },
+    async deleteEmployee(id) {
+      this.isLoading = true
+      fetch(`https://thick-evey-marscos-b3b05295.koyeb.app/employees/${id}`, {method: 'DELETE'}).then(_ => {
+        isLoading = false;
+        return this.fetchData(1)
+      })
+    }
+  };
+}</script>
+    <script>document.addEventListener('DOMContentLoaded', () => {
+  // Functions to open and close a modal
+  function openModal($el) {
+    $el.classList.add('is-active');
+  }
+
+  function closeModal($el) {
+    $el.classList.remove('is-active');
+  }
+
+  function closeAllModals() {
+    (document.querySelectorAll('.modal') || []).forEach(($modal) => {
+      closeModal($modal);
+    });
+  }
+
+  // Add a click event on buttons to open a specific modal
+  (document.querySelectorAll('.js-modal-trigger') || []).forEach(($trigger) => {
+    const modal = $trigger.dataset.target;
+    const $target = document.getElementById(modal);
+
+    $trigger.addEventListener('click', () => {
+      openModal($target);
+    });
+  });
+
+  // Add a click event on various child elements to close the parent modal
+  (document.querySelectorAll('.modal-background, .modal-close, .modal-card-head .delete, .modal-card-foot .button') || []).forEach(($close) => {
+    const $target = $close.closest('.modal');
+
+    $close.addEventListener('click', () => {
+      closeModal($target);
+    });
+  });
+
+  // Add a keyboard event to close all modals
+  document.addEventListener('keydown', (event) => {
+    if(event.key === "Escape") {
+      closeAllModals();
+    }
+  });
+});</script>
+    <style>
+html {
+  overflow-y: hidden;
+}
+
+body {
+  background-color: #ffffff;
+  margin: auto 4em 4em 4em;
+}
+
+.header {
+  background-color: #2b2b2b;
+  color: white;
+  padding: 1em;
+}
+
+.form-fields {
+  background-color: white;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-evenly;
+  border-bottom: #2b2b2b 1px solid;
+}
+
+.search {
+  min-width: 500px;
+}
+
+.result-table {
+  min-width: 100%;
+}
+
+.result-table th {
+  padding: 10px;
+  /* border: white 1px solid; */
+}
+
+.result-table tr {
+  border-bottom: white 0.5px solid;
+}</style>
+  </head>
+
+  <body>
+    <div class="header">
+      <h1>Work App Sample</h1>
+    </div>
+    <br />
+    <div
+      x-init="$nextTick(() => { fetchOptions(); fetchData(); } )"
+      x-data="getData()"
+      data-reflect-root=""
+    >
+      <form class="form-fields">
+        <div class="field">
+          <label class="label">Departamento</label>
+          <div class="control">
+            <div class="select">
+              <select
+                x-model="selectedOption"
+                @change="fetchData()"
+                :disabled="isLoading"
+                disabled="disabled"
+              >
+                <option selected value="0">All</option>
+                <template x-for="option in options" :key="option.id">
+                  <option
+                    :key="option.id"
+                    :value="option.id"
+                    x-text="option.name"
+                  ></option>
+                </template>
+              </select>
+            </div>
+          </div>
+        </div>
+      </form>
+      <template x-if="items.length">
+        <div class="is-flex is-flex-direction-column is-align-items-center">
+          <table class="result-table table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Department</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <template x-for="item in items" :key="item.id">
+                <tr>
+                  <td x-text="item.id"></td>
+                  <td x-text="item.name"></td>
+                  <td x-text="item.email"></td>
+                  <template x-if="item.departmentId">
+                    <td x-text="item.departmentId"></td>
+                  </template>
+                  <template x-if="!item.departmentId">
+                    <td>None</td>
+                  </template>
+                  <td>
+                    <button
+                      @click="isEditing = item; document.querySelector('#modal-create-employee').classList.add('is-active')"
+                      :class="[ isLoading ? 'button is-info cursor-not-allowed' : 'button is-info' ]"
+                      :disabled="isLoading"
+                      disabled="disabled"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      @click="deleteEmployee(item.id)"
+                      :class="[ isLoading ? 'button is-danger cursor-not-allowed' : 'button is-danger' ]"
+                      :disabled="isLoading"
+                      disabled="disabled"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+          <br />
+          <template x-if="isLoading">
+            <span>Loading...</span>
+          </template>
+          <template x-if="!isLoading && !items.length">
+            <span>No records to show.</span>
+          </template>
+          <nav
+            class="pagination is-centered"
+            role="navigation"
+            aria-label="pagination"
+            x-show="!isLoading && items.length"
+          >
+            <ul class="pagination-list">
+              <li x-show="(page - 1) > 1">
+                <a class="pagination-link" x-text="1" @click="fetchData(1)"></a>
+              </li>
+              <li x-show="(page - 1) > 1">
+                <span class="pagination-ellipsis">&hellip;</span>
+              </li>
+              <li x-show="page-1">
+                <a
+                  class="pagination-link"
+                  x-text="page-1"
+                  @click="fetchData(page-1)"
+                ></a>
+              </li>
+              <li>
+                <a class="pagination-link is-current" x-text="page">1</a>
+              </li>
+              <li x-show="page != lastPage">
+                <a
+                  class="pagination-link"
+                  x-text="page+1"
+                  @click="fetchData(page+1)"
+                ></a>
+              </li>
+              <li x-show="(page + 1) < lastPage">
+                <span class="pagination-ellipsis">&hellip;</span>
+              </li>
+              <li x-show="(page + 1) < lastPage">
+                <a
+                  class="pagination-link"
+                  x-text="lastPage"
+                  @click="fetchData(lastPage)"
+                ></a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </template>
+      <button
+        @click="isEditing = {}"
+        class="button is-info js-modal-trigger"
+        data-target="modal-create-employee"
+      >
+        Create Employee
+      </button>
+      <button
+        @click="isEditing = {}"
+        class="button is-info js-modal-trigger"
+        data-target="modal-create-department"
+      >
+        Create Department
+      </button>
+      <div class="modal" id="modal-create-employee">
+        <div class="modal-background"></div>
+        <div class="modal-content">
+          <div class="box">
+            <form
+              class="form"
+              x-data="useForm('https://thick-evey-marscos-b3b05295.koyeb.app/employees')"
+              x-on:submit.prevent="() => post(isEditing)"
+              autocomplete="off"
+            >
+              <div
+                class="form-response"
+                x-cloak
+                x-show="response"
+                class="is-error"
+                x-text="response?.message"
+                x-transition
+              ></div>
+              <div class="field">
+                <label class="label">Name</label>
+                <div class="control">
+                  <input
+                    class="form-input"
+                    name="name"
+                    type="text"
+                    x-model="isEditing.name"
+                  />
+                </div>
+              </div>
+              <div class="field">
+                <label class="label">Email</label>
+                <div class="control">
+                  <input
+                    class="form-input"
+                    name="email"
+                    type="email"
+                    x-model="isEditing.email"
+                  />
+                </div>
+              </div>
+              <div class="field">
+                <label class="label">Department</label>
+                <div class="control">
+                  <div class="select">
+                    <select
+                      name="departmentId"
+                      x-model="isEditing.departmentId"
+                    >
+                      <option selected :value="null">None</option>
+                      <template x-for="option in options" :key="option.id">
+                        <option
+                          :key="option.id"
+                          :value="option.id"
+                          x-text="option.name"
+                        ></option>
+                      </template>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <div class="field is-grouped">
+                <div class="control">
+                  <button
+                    type="submit"
+                    :class="[ isLoading ? 'button is-link cursor-not-allowed' : 'button is-link' ]"
+                    :disabled="isLoading"
+                    disabled="disabled"
+                  >
+                    Submit
+                  </button>
+                </div>
+                <div class="control">
+                  <button
+                    type="button"
+                    @click="document.querySelector('#modal-create-employee').classList.remove('is-active')"
+                    :class="[ isLoading ? 'button is-link is-light cursor-not-allowed' : 'button is-link is-light' ]"
+                    :disabled="isLoading"
+                    disabled="disabled"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+      <div class="modal" id="modal-create-department">
+        <div class="modal-background"></div>
+        <div class="modal-content">
+          <div class="box">
+            <form
+              class="form"
+              x-data="useForm('https://thick-evey-marscos-b3b05295.koyeb.app/departments')"
+              x-on:submit.prevent="() => post(isEditing)"
+              autocomplete="off"
+            >
+              <div
+                class="form-response"
+                x-cloak
+                x-show="response"
+                class="is-error"
+                x-text="response?.message"
+                x-transition
+              ></div>
+              <div class="field">
+                <label class="label">Name</label>
+                <div class="control">
+                  <input class="form-input" name="name" type="text" />
+                </div>
+              </div>
+              <div class="field is-grouped">
+                <div class="control">
+                  <button
+                    type="submit"
+                    :class="[ isLoading ? 'button is-link cursor-not-allowed' : 'button is-link' ]"
+                    :disabled="isLoading"
+                    disabled="disabled"
+                  >
+                    Submit
+                  </button>
+                </div>
+                <div class="control">
+                  <button
+                    type="button"
+                    @click="closeModal('#modal-create-department')"
+                    :class="[ isLoading ? 'button is-link is-light cursor-not-allowed' : 'button is-link is-light' ]"
+                    :disabled="isLoading"
+                    disabled="disabled"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
