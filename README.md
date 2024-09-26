@@ -50,7 +50,7 @@ $ npm run test:cov
 
 # Documentação
 
-A documentação (Swagger) está disponível no endpoint `/api` do serviço.
+A [documentação (Swagger)](https://thick-evey-marscos-b3b05295.koyeb.app/api/) é disponibilizada no endpoint `/api` do serviço.
 
 # Publicação
 
@@ -59,3 +59,12 @@ A branch `main` é publicada automaticamente em uma instância no [Koyeb](https:
 # Versionamento da API
 
 Como o serviço é provisionado por imagens Docker, basta publicar versões do serviço em diferentes caminhos (e.g.: `https://example.com/api/v1/`, `https://example.com/api/v2/` etc.)
+
+# Interface Web simples
+
+Uma página de exemplo para interações com o serviço está disponibilizada no arquivo `index.html` do repositório, publicada pelo [GitHub Pages](https://marscos.github.io/nestjs-sample-app).
+
+Observações:
+- A página foi construída com [AlpineJS](https://alpinejs.dev/) para explorar o framework e simplificar o processo de build e deployment.
+- **O caminho do serviço está hardcoded com o domínio atual da implantação no Koyeb.**
+- Não contempla a funcionalidade de edição de departamentos.
